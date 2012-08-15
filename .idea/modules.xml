@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/accessibility/accessibility.iml" filepath="$PROJECT_DIR$/accessibility/accessibility.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/annotation/annotation.iml" filepath="$PROJECT_DIR$/annotation/annotation.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/applet/applet.iml" filepath="$PROJECT_DIR$/applet/applet.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/archive/archive.iml" filepath="$PROJECT_DIR$/archive/archive.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/auth/auth.iml" filepath="$PROJECT_DIR$/auth/auth.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/awt/awt.iml" filepath="$PROJECT_DIR$/awt/awt.iml" group="classpath/ui" />
+      <module fileurl="file://$PROJECT_DIR$/bcel/bcel.iml" filepath="$PROJECT_DIR$/bcel/bcel.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/beans/beans.iml" filepath="$PROJECT_DIR$/beans/beans.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/concurrent/concurrent.iml" filepath="$PROJECT_DIR$/concurrent/concurrent.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/yoko/core/core.iml" filepath="$PROJECT_DIR$/yoko/core/core.iml" group="classpath/yoko" />
+      <module fileurl="file://$PROJECT_DIR$/crypto/crypto.iml" filepath="$PROJECT_DIR$/crypto/crypto.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/icu/icu.iml" filepath="$PROJECT_DIR$/icu/icu.iml" group="classpath/icu" />
+      <module fileurl="file://$PROJECT_DIR$/icu-charset/icu-charset.iml" filepath="$PROJECT_DIR$/icu-charset/icu-charset.iml" group="classpath/icu" />
+      <module fileurl="file://$PROJECT_DIR$/imageio/imageio.iml" filepath="$PROJECT_DIR$/imageio/imageio.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/jmx/jmx.iml" filepath="$PROJECT_DIR$/jmx/jmx.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/jndi/jndi.iml" filepath="$PROJECT_DIR$/jndi/jndi.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/lang-management/lang-management.iml" filepath="$PROJECT_DIR$/lang-management/lang-management.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/logging/logging.iml" filepath="$PROJECT_DIR$/logging/logging.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/luni/luni.iml" filepath="$PROJECT_DIR$/luni/luni.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/math/math.iml" filepath="$PROJECT_DIR$/math/math.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/misc/misc.iml" filepath="$PROJECT_DIR$/misc/misc.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/moduling/moduling.iml" filepath="$PROJECT_DIR$/moduling/moduling.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/napile.classpath.iml" filepath="$PROJECT_DIR$/napile.classpath.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nio/nio.iml" filepath="$PROJECT_DIR$/nio/nio.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/nio_char/nio_char.iml" filepath="$PROJECT_DIR$/nio_char/nio_char.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/prefs/prefs.iml" filepath="$PROJECT_DIR$/prefs/prefs.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/print/print.iml" filepath="$PROJECT_DIR$/print/print.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/regex/regex.iml" filepath="$PROJECT_DIR$/regex/regex.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/rmi/rmi.iml" filepath="$PROJECT_DIR$/rmi/rmi.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/yoko/rmi-impl/rmi-impl.iml" filepath="$PROJECT_DIR$/yoko/rmi-impl/rmi-impl.iml" group="classpath/yoko" />
+      <module fileurl="file://$PROJECT_DIR$/yoko/rmi-spec/rmi-spec.iml" filepath="$PROJECT_DIR$/yoko/rmi-spec/rmi-spec.iml" group="classpath/yoko" />
+      <module fileurl="file://$PROJECT_DIR$/security/security.iml" filepath="$PROJECT_DIR$/security/security.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/sound/sound.iml" filepath="$PROJECT_DIR$/sound/sound.iml" />
+      <module fileurl="file://$PROJECT_DIR$/yoko/spec-corba/spec-corba.iml" filepath="$PROJECT_DIR$/yoko/spec-corba/spec-corba.iml" group="classpath/yoko" />
+      <module fileurl="file://$PROJECT_DIR$/sql/sql.iml" filepath="$PROJECT_DIR$/sql/sql.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/suncompat/suncompat.iml" filepath="$PROJECT_DIR$/suncompat/suncompat.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/swing/swing.iml" filepath="$PROJECT_DIR$/swing/swing.iml" group="classpath/ui" />
+      <module fileurl="file://$PROJECT_DIR$/text/text.iml" filepath="$PROJECT_DIR$/text/text.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/x-net/x-net.iml" filepath="$PROJECT_DIR$/x-net/x-net.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/xalan/xalan.iml" filepath="$PROJECT_DIR$/xalan/xalan.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/xerses/xerses.iml" filepath="$PROJECT_DIR$/xerses/xerses.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/xml/xml.iml" filepath="$PROJECT_DIR$/xml/xml.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/xml-resolver/xml-resolver.iml" filepath="$PROJECT_DIR$/xml-resolver/xml-resolver.iml" group="classpath" />
+    </modules>
+  </component>
+</project>
+

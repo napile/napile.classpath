@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="archive" />
+    <orderEntry type="module" module-name="icu" />
+    <orderEntry type="module" module-name="x-net" />
+    <orderEntry type="module" module-name="xml" exported="" />
+    <orderEntry type="module" module-name="logging" exported="" />
+    <orderEntry type="module" module-name="accessibility" exported="" />
+    <orderEntry type="module" module-name="annotation" exported="" />
+    <orderEntry type="module" module-name="nio" exported="" />
+    <orderEntry type="module" module-name="nio_char" exported="" />
+    <orderEntry type="module" module-name="security" exported="" />
+    <orderEntry type="module" module-name="math" exported="" />
+    <orderEntry type="module" module-name="misc" exported="" />
+    <orderEntry type="module" module-name="regex" exported="" />
+    <orderEntry type="module" module-name="concurrent" exported="" />
+    <orderEntry type="module" module-name="crypto" exported="" />
+    <orderEntry type="module" module-name="suncompat" exported="" />
+  </component>
+</module>
+
