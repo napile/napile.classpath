@@ -10,6 +10,8 @@
     <orderEntry type="module" module-name="luni" />
     <orderEntry type="module" module-name="imageio" />
     <orderEntry type="module" module-name="awt" />
+    <orderEntry type="module" module-name="rmi" />
+    <orderEntry type="module" module-name="x-net" />
   </component>
 </module>
 

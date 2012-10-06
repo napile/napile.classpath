@@ -1,165 +1,182 @@
-/* 
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- * 
+/*
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+/**
+ * @author Alexander V. Astapchuk
  */
 
 package java.security;
 
+import java.util.ArrayList;
+import org.apache.harmony.security.fortress.PolicyUtils;
+
 /**
- * The vm vendor may choose to implement this class. The reference
- * implementation must be used if the reference implementation of
- * AccessController is used.
- * 
- * An AccessControlContext encapsulates the information which is needed by class
- * AccessController to detect if a Permission would be granted at a particular
- * point in a programs execution.
- * 
+ * @com.intel.drl.spec_ref
  */
-
 public final class AccessControlContext {
-	DomainCombiner domainCombiner;
 
-	ProtectionDomain[] domainsArray;
+	// List of ProtectionDomains wrapped by the AccessControlContext
+	// It has the following characteristics:
+	//     - 'context' can not be null
+	//     - never contains null(s)
+	//     - all elements are uniq (no dups)
+	ProtectionDomain[] context;
 
-	private static final SecurityPermission createAccessControlContext = new SecurityPermission(
-			"createAccessControlContext");
+	DomainCombiner combiner;
 
-	private static final SecurityPermission getDomainCombiner = new SecurityPermission(
-			"getDomainCombiner");
-
-	/**
-	 * Constructs a new instance of this class given an array of protection
-	 * domains.
-	 * 
-	 */
-	public AccessControlContext(ProtectionDomain[] context) {
-		int length = context.length;
-		int domainIndex = 0;
-		this.domainsArray = new ProtectionDomain[length];
-		next: for (int i = 0; i < length; i++) {
-			ProtectionDomain current = context[i];
-			for (int j = 0; j < i; j++)
-				if (current == this.domainsArray[j])
-					continue next;
-			this.domainsArray[domainIndex++] = current;
-		}
-		if (domainIndex != length) {
-			ProtectionDomain[] copy = new ProtectionDomain[domainIndex];
-			System.arraycopy(this.domainsArray, 0, copy, 0, domainIndex);
-			this.domainsArray = copy;
-		}
-	}
-
-	AccessControlContext(ProtectionDomain[] context, boolean ignored) {
-		domainsArray = context;
-	}
+	// An AccessControlContext inherited by the current thread from its parent
+	private AccessControlContext inherited;
 
 	/**
-	 * Constructs a new instance of this class given a context and a
-	 * DomainCombiner
+	 * @com.intel.drl.spec_ref
 	 */
 	public AccessControlContext(AccessControlContext acc,
 			DomainCombiner combiner) {
-		SecurityManager security = System.getSecurityManager();
-		if (security != null)
-			security.checkPermission(createAccessControlContext);
-		this.domainsArray = acc.domainsArray;
-		this.domainCombiner = combiner;
+		SecurityManager sm = System.getSecurityManager();
+		if (sm != null) {
+			sm.checkPermission(new SecurityPermission(
+					"createAccessControlContext"));
+		}
+		// no need to clone() here as ACC is immutable
+		this.context = acc.context;
+		this.combiner = combiner;
 	}
 
 	/**
-	 * Checks if the permission <code>perm</code> is allowed in this context.
-	 * All ProtectionDomains must grant the permission for it to be granted.
-	 * 
-	 * @param perm
-	 *            java.security.Permission the permission to check
-	 * @exception java.security.AccessControlException
-	 *                thrown when perm is not granted.
+	 * @com.intel.drl.spec_ref
+	 */
+	public AccessControlContext(ProtectionDomain[] context) {
+		if (context == null) {
+			throw new NullPointerException("context can not be null");
+		}
+		if (context.length != 0) {
+			// remove dup entries
+			ArrayList<ProtectionDomain> a = new ArrayList<ProtectionDomain>();
+			for (int i = 0; i < context.length; i++) {
+				if (context[i] != null && !a.contains(context[i])) {
+					a.add(context[i]);
+				}
+			}
+			if (a.size() != 0) {
+				this.context = new ProtectionDomain[a.size()];
+				a.toArray(this.context);
+			}
+		}
+		if (this.context == null) {
+			// Prevent numerous checks for 'context==null'
+			this.context = new ProtectionDomain[0];
+		}
+	}
+
+	/**
+	 * Package-level ctor which is used in AccessController.<br>
+	 * ProtectionDomains passed as <code>stack</code> is then passed into
+	 * {@link #AccessControlContext(ProtectionDomain[])}, therefore:<br>
+	 * <il>
+	 * <li>it must not be null
+	 * <li>duplicates will be removed
+	 * <li>null-s will be removed
+	 * </li>
+	 *
+	 * @param stack - array of ProtectionDomains
+	 * @param inherited - inherited context, which may be null
+	 */
+	AccessControlContext(ProtectionDomain[] stack,
+			AccessControlContext inherited) {
+		this(stack); // removes dups, removes nulls, checks for stack==null
+		this.inherited = inherited;
+	}
+
+	/**
+	 * Package-level ctor which is used in AccessController.<br>
+	 * ProtectionDomains passed as <code>stack</code> is then passed into
+	 * {@link #AccessControlContext(ProtectionDomain[])}, therefore:<br>
+	 * <il>
+	 * <li>it must not be null
+	 * <li>duplicates will be removed
+	 * <li>null-s will be removed
+	 * </li>
+	 *
+	 * @param stack - array of ProtectionDomains
+	 * @param inherited - inherited context, which may be null
+	 */
+	AccessControlContext(ProtectionDomain[] stack,
+			DomainCombiner combiner) {
+		this(stack); // removes dups, removes nulls, checks for stack==null
+		this.combiner = combiner;
+	}
+
+	/**
+	 * @com.intel.drl.spec_ref
 	 */
 	public void checkPermission(Permission perm) throws AccessControlException {
-		if (perm == null)
-			throw new NullPointerException();
-		int i = domainsArray.length;
-		while (--i >= 0 && domainsArray[i].implies(perm))
-			;
-		if (i >= 0) {
-			throw new AccessControlException("Access Denied", perm);
+		if (perm == null) {
+			throw new NullPointerException("Permission cannot be null");
+		}
+		for (int i = 0; i < context.length; i++) {
+			if (!context[i].implies(perm)) {
+				throw new AccessControlException("Permission check failed "
+						+ perm, perm);
+			}
+		}
+		if (inherited != null) {
+			inherited.checkPermission(perm);
 		}
 	}
 
 	/**
-	 * Compares the argument to the receiver, and answers true if they represent
-	 * the <em>same</em> object using a class specific comparison. In this
-	 * case, they must both be AccessControlContexts and contain the same
-	 * protection domains.
-	 * 
-	 * 
-	 * @param o
-	 *            the object to compare with this object
-	 * @return <code>true</code> if the object is the same as this object
-	 *         <code>false</code> if it is different from this object
-	 * @see #hashCode
+	 * @com.intel.drl.spec_ref
 	 */
-	public boolean equals(Object o) {
-		if (this == o)
+	public boolean equals(Object obj) {
+		if (this == obj) {
 			return true;
-		if (o == null || this.getClass() != o.getClass())
-			return false;
-		AccessControlContext otherContext = (AccessControlContext) o;
-		ProtectionDomain[] otherDomains = otherContext.domainsArray;
-		int length = domainsArray.length;
-		if (length != otherDomains.length)
-			return false;
-
-		next: for (int i = 0; i < length; i++) {
-			ProtectionDomain current = domainsArray[i];
-			for (int j = 0; j < length; j++)
-				if (current == otherDomains[j])
-					continue next;
-			return false;
 		}
-		return true;
+		if (obj instanceof AccessControlContext) {
+			AccessControlContext that = (AccessControlContext) obj;
+			if (!(PolicyUtils.matchSubset(context, that.context) && PolicyUtils
+					.matchSubset(that.context, context))) {
+				return false;
+			}
+			// 'combiner' is not taken into account - see the test
+			// AccessControllerTest.testEqualsObject_01
+			return true;
+		}
+		return false;
 	}
 
 	/**
-	 * Answers an integer hash code for the receiver. Any two objects which
-	 * answer <code>true</code> when passed to <code>equals</code> must
-	 * answer the same value for this method.
-	 * 
-	 * 
-	 * @return the receiver's hash
-	 * 
-	 * @see #equals
-	 */
-	public int hashCode() {
-		int result = 0;
-		int i = domainsArray.length;
-		while (--i >= 0)
-			result ^= domainsArray[i].hashCode();
-		return result;
-	}
-
-	/**
-	 * Answers the DomainCombiner for the receiver.
-	 * 
+	 * @com.intel.drl.spec_ref
 	 */
 	public DomainCombiner getDomainCombiner() {
-		SecurityManager security = System.getSecurityManager();
-		if (security != null)
-			security.checkPermission(getDomainCombiner);
-		return domainCombiner;
+		SecurityManager sm = System.getSecurityManager();
+		if (sm != null) {
+			sm.checkPermission(new SecurityPermission("getDomainCombiner"));
+		}
+		return combiner;
+	}
+
+	/**
+	 * @com.intel.drl.spec_ref
+	 */
+	public int hashCode() {
+		int hash = 0;
+		for (int i = 0; i < context.length; i++) {
+			hash ^= context[i].hashCode();
+		}
+		return hash;
 	}
 
 }

@@ -9,6 +9,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="luni" />
     <orderEntry type="module" module-name="beans" />
+    <orderEntry type="module" module-name="auth" />
   </component>
 </module>
 

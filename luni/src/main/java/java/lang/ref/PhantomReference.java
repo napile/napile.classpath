@@ -40,13 +40,12 @@ public class PhantomReference<T> extends Reference<T> {
      * does not make any sense, since the reference will never be enqueued, and
      * the {@link #get()} method always returns {@code null}.
      *
-     * @param r the referent to track
+     * @param referent the referent to track
      * @param q the queue to register the phantom reference object with
      */
-    public PhantomReference(T r, ReferenceQueue<? super T> q) {
-        super();
-        initReference(r, q);
-    }
+	public PhantomReference(T referent, ReferenceQueue<? super T> q) {
+		super(referent, q);
+	}
 
     /**
      * Returns {@code null}.  The referent of a phantom reference is not
@@ -56,6 +55,6 @@ public class PhantomReference<T> extends Reference<T> {
      */
     @Override
     public T get() {
-        return super.get();
+        return null;
     }
 }

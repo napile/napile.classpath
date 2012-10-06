@@ -5,10 +5,13 @@
  */
 
 package java.util.concurrent.atomic;
-import sun.misc.Unsafe;
-import java.lang.reflect.*;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Member;
+import java.lang.reflect.Modifier;
 
 import org.apache.harmony.kernel.vm.VM;
+import sun.misc.Unsafe;
 
 /**
  * A reflection-based utility that enables atomic updates to

@@ -5,10 +5,6 @@
  */
 
 package java.util.concurrent.locks;
-import java.util.concurrent.*;
-import sun.misc.Unsafe;
-
-
 /**
  * Basic thread blocking primitives for creating locks and other
  * synchronization classes.
@@ -82,9 +78,6 @@ import sun.misc.Unsafe;
 public class LockSupport {
     private LockSupport() {} // Cannot be instantiated.
 
-    // Hotspot implementation via intrinsics API
-    private static final Unsafe unsafe = Unsafe.getUnsafe();
-
     /**
      * Makes available the permit for the given thread, if it
      * was not already available.  If the thread was blocked on
@@ -96,10 +89,7 @@ public class LockSupport {
      * @param thread the thread to unpark, or {@code null}, in which case
      *        this operation has no effect
      */
-    public static void unpark(Thread thread) {
-        if (thread != null)
-            unsafe.unpark(thread);
-    }
+	public static native void unpark(Thread thread);
 
     /**
      * Disables the current thread for thread scheduling purposes unless the
@@ -126,11 +116,9 @@ public class LockSupport {
      * the thread to park in the first place. Callers may also determine,
      * for example, the interrupt status of the thread upon return.
      */
-    public static void park() {
-        unsafe.park(false, 0L);
-    }
+	public static native void park();
 
-    /**
+	/**
      * Disables the current thread for thread scheduling purposes, for up to
      * the specified waiting time, unless the permit is available.
      *
@@ -159,10 +147,7 @@ public class LockSupport {
      *
      * @param nanos the maximum number of nanoseconds to wait
      */
-    public static void parkNanos(long nanos) {
-        if (nanos > 0)
-            unsafe.park(false, nanos);
-    }
+	public static native void parkNanos(long nanos);
 
     /**
      * Disables the current thread for thread scheduling purposes, until
@@ -194,7 +179,5 @@ public class LockSupport {
      * @param deadline the absolute time, in milliseconds from the Epoch,
      *        to wait until
      */
-    public static void parkUntil(long deadline) {
-        unsafe.park(true, deadline);
-    }
+	public static native void parkUntil(long deadline);
 }

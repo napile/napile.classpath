@@ -21,69 +21,80 @@ package java.lang;
  * Placeholder class for environments which explicitly manage the action of a
  * <em>Just In Time (JIT)</em> compiler. This class is usually implemented by
  * the virtual machine vendor.
+ *
+ * Serves as a layer between JIT compiler and java application.
+ *
+ * @author Evgueni Brevnov
  */
-public final class Compiler {
+public final class Compiler
+{
 
-    /**
-     * Prevent this class from being instantiated.
-     */
-    private Compiler(){
-        //do nothing
-    }
+	/**
+	 * This class is not supposed to be instantiated.
+	 */
+	private Compiler()
+	{
+	}
 
-    /**
-     * Executes an operation according to the specified command object. This
-     * method is the low-level interface to the JIT compiler. It may return any
-     * object or {@code null} if no JIT compiler is available.
-     *
-     * @param cmd
-     *            the command object for the JIT compiler.
-     * @return the result of executing command or {@code null}.
-     */
-    public static Object command(Object cmd) {
-        return null;
-    }
+	/**
+	 * This method satisfies the requirements of the specification for the
+	 * {@link Compiler#command(java.lang.Object) Compiler.command(Object any)}
+	 * method.
+	 *
+	 * @api2vm
+	 */
+	public static Object command(Object obj)
+	{
+		if(obj == null)
+			throw new NullPointerException();
+		return null;
+	}
 
-    /**
-     * Compiles the specified class using the JIT compiler and indicates if
-     * compilation has been successful.
-     *
-     * @param classToCompile
-     *            java.lang.Class the class to JIT compile
-     * @return {@code true} if the compilation has been successful;
-     *         {@code false} if it has failed or if there is no JIT compiler
-     *         available.
-     */
-    public static boolean compileClass(Class<?> classToCompile) {
-        return false;
-    }
+	/**
+	 * This method satisfies the requirements of the specification for the
+	 * {@link Compiler#compileClass(java.lang.Class)
+	 * Compiler.compileClass(Class clazz)} method.
+	 *
+	 * @api2vm
+	 */
+	public static boolean compileClass(Class<?> clazz)
+	{
+		if(clazz == null)
+			throw new NullPointerException();
+		return false;
+	}
 
-    /**
-     * Compiles all classes whose name matches the specified name using the JIT
-     * compiler and indicates if compilation has been successful.
-     *
-     * @param nameRoot
-     *            the string to match class names with.
-     * @return {@code true} if the compilation has been successful;
-     *         {@code false} if it has failed or if there is no JIT compiler
-     *         available.
-     */
-    public static boolean compileClasses(String nameRoot) {
-        return false;
-    }
+	/**
+	 * This method satisfies the requirements of the specification for the
+	 * {@link Compiler#compileClasses(java.lang.String)
+	 * Compiler.compileClasses(String string)} method.
+	 *
+	 * @api2vm
+	 */
+	public static boolean compileClasses(String name)
+	{
+		if(name == null)
+			throw new NullPointerException();
+		return false;
+	}
 
-    /**
-     * Disables the JIT compiler.
-     */
-    public static void disable() {
-        return;
-    }
+	/**
+	 * This method satisfies the requirements of the specification for the
+	 * {@link Compiler#disable() Compiler.disable()} method.
+	 *
+	 * @api2vm
+	 */
+	public static void disable()
+	{
+	}
 
-    /**
-     * Enables the JIT compiler.
-     */
-    public static void enable() {
-        return;
-    }
-
+	/**
+	 * This method satisfies the requirements of the specification for the
+	 * {@link Compiler#enable() Compiler.enable()} method.
+	 *
+	 * @api2vm
+	 */
+	public static void enable()
+	{
+	}
 }

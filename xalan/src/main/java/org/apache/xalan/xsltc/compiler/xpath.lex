@@ -26,7 +26,7 @@
 
 package org.apache.xalan.xsltc.compiler;
 
-import java_cup.runtime.Symbol;
+import Symbol;
 %%
 %cup
 %unicode

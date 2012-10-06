@@ -17,18 +17,19 @@
 
 package java.sql;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Enumeration;
-import java.util.Iterator;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.util.Vector;
 import java.security.AccessController;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.Vector;
+
+import org.apache.harmony.kernel.vm.VM;
 import org.apache.harmony.luni.util.PriviAction;
 import org.apache.harmony.sql.internal.nls.Messages;
-import org.apache.harmony.kernel.vm.VM;
 
 /**
  * Provides facilities for managing JDBC drivers.

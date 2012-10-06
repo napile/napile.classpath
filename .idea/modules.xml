@@ -34,12 +34,14 @@
       <module fileurl="file://$PROJECT_DIR$/yoko/rmi-impl/rmi-impl.iml" filepath="$PROJECT_DIR$/yoko/rmi-impl/rmi-impl.iml" group="classpath/yoko" />
       <module fileurl="file://$PROJECT_DIR$/yoko/rmi-spec/rmi-spec.iml" filepath="$PROJECT_DIR$/yoko/rmi-spec/rmi-spec.iml" group="classpath/yoko" />
       <module fileurl="file://$PROJECT_DIR$/security/security.iml" filepath="$PROJECT_DIR$/security/security.iml" group="classpath" />
-      <module fileurl="file://$PROJECT_DIR$/sound/sound.iml" filepath="$PROJECT_DIR$/sound/sound.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sound/sound.iml" filepath="$PROJECT_DIR$/sound/sound.iml" group="classpath" />
       <module fileurl="file://$PROJECT_DIR$/yoko/spec-corba/spec-corba.iml" filepath="$PROJECT_DIR$/yoko/spec-corba/spec-corba.iml" group="classpath/yoko" />
       <module fileurl="file://$PROJECT_DIR$/sql/sql.iml" filepath="$PROJECT_DIR$/sql/sql.iml" group="classpath" />
       <module fileurl="file://$PROJECT_DIR$/suncompat/suncompat.iml" filepath="$PROJECT_DIR$/suncompat/suncompat.iml" group="classpath" />
       <module fileurl="file://$PROJECT_DIR$/swing/swing.iml" filepath="$PROJECT_DIR$/swing/swing.iml" group="classpath/ui" />
       <module fileurl="file://$PROJECT_DIR$/text/text.iml" filepath="$PROJECT_DIR$/text/text.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/vmmagic/vmmagic.iml" filepath="$PROJECT_DIR$/vmmagic/vmmagic.iml" group="classpath" />
+      <module fileurl="file://$PROJECT_DIR$/vmsupport/vmsupport.iml" filepath="$PROJECT_DIR$/vmsupport/vmsupport.iml" group="classpath" />
       <module fileurl="file://$PROJECT_DIR$/x-net/x-net.iml" filepath="$PROJECT_DIR$/x-net/x-net.iml" group="classpath" />
       <module fileurl="file://$PROJECT_DIR$/xalan/xalan.iml" filepath="$PROJECT_DIR$/xalan/xalan.iml" group="classpath" />
       <module fileurl="file://$PROJECT_DIR$/xerses/xerses.iml" filepath="$PROJECT_DIR$/xerses/xerses.iml" group="classpath" />

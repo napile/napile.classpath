@@ -1,0 +1,204 @@
+<!--
+  ~ Copyright 2010-2012 napile.org
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<project name="classpath" default="makeAll">
+	<property name="build.dir" location="_build" />
+
+	<target name="clean">
+		<delete dir="${build.dir}" />
+	</target>
+
+	<macrodef name="compile.module">
+		<attribute name="name" />
+
+		<element name="add.classpath" optional="true"/>
+		<element name="add.includepath" optional="true"/>
+
+		<sequential>
+			<echo message="Compiling @{name}.jar" />
+
+			<delete dir="${build.dir}/classes/@{name}" />
+			<delete file="${build.dir}/dist/@{name}.jar" />
+			<mkdir dir="${build.dir}/classes/@{name}" />
+
+			<javac source="1.6" target="1.6" destdir="${build.dir}/classes/@{name}" nowarn="on" includejavaruntime="false">
+				<compilerarg value="-implicit:none" />
+				<src>
+					<dirset dir="@{name}/src/main/java" />
+				</src>
+				<classpath>
+					<fileset dir="${build.dir}/dist" erroronmissingdir="false">
+						<include name="*.jar" />
+					</fileset>
+					<fileset dir="@{name}/lib" erroronmissingdir="false">
+						<include name="*.jar" />
+					</fileset>
+					<add.classpath />
+				</classpath>
+				<sourcepath>
+					<add.includepath />
+				</sourcepath>
+			</javac>
+			<jar basedir="${build.dir}/classes/@{name}" file="${build.dir}/dist/@{name}.jar" />
+		</sequential>
+	</macrodef>
+
+	<target name="makeAll">
+		<antcall target="single.vmmagic" />
+		<antcall target="single.vmsupport" />
+
+		<antcall target="single.accessibility" />
+		<antcall target="single.icu" />
+		<antcall target="single.icu-charset" />
+		<antcall target="single.misc" />
+
+		<antcall target="single.annotation" />
+		<antcall target="single.bcel" />
+		<antcall target="single.math" />
+		<antcall target="single.regex" />
+		<antcall target="single.text" />
+		<antcall target="single.xml" />
+		<antcall target="single.xml-resolver" />
+		<antcall target="single.xerses" />
+		<antcall target="single.xalan" />
+		<antcall target="single.suncompat" />
+
+		<!--<antcall target="single.prefs" /> -->
+
+		<!-- <antcall target="single.sound" /> -->
+
+		<!--<antcall target="single.print" /> -->
+
+		<!--<antcall target="single.crypto" /> -->
+		<!--<antcall target="single.nio" />  -->
+		<!--<antcall target="single.luni" /> -->
+
+		<!--<antcall target="single.security" />-->
+		<!--<antcall target="single.x-net" /> -->
+
+		<!--<antcall target="single.auth" />-->
+		<!--<antcall target="single.applet" /> -->
+		<!--<antcall target="single.archive" />-->
+	</target>
+
+	<target name="single.archive">
+		<compile.module name="archive" />
+	</target>
+
+	<target name="single.accessibility">
+		<compile.module name="accessibility" />
+	</target>
+
+	<target name="single.sound">
+		<compile.module name="sound" />
+	</target>
+
+	<target name="single.prefs">
+		<compile.module name="prefs" />
+	</target>
+
+	<target name="single.applet">
+		<compile.module name="applet" />
+	</target>
+
+	<target name="single.auth">
+		<compile.module name="auth" />
+	</target>
+
+	<target name="single.bcel">
+		<compile.module name="bcel" />
+	</target>
+
+	<target name="single.suncompat">
+		<compile.module name="suncompat" />
+	</target>
+
+	<target name="single.crypto">
+		<compile.module name="crypto" />
+	</target>
+
+	<target name="single.math">
+		<compile.module name="math" />
+	</target>
+
+	<target name="single.text">
+		<compile.module name="text" />
+	</target>
+
+	<target name="single.icu">
+		<compile.module name="icu" />
+	</target>
+
+	<target name="single.icu-charset">
+		<compile.module name="icu-charset" />
+	</target>
+
+	<target name="single.misc">
+		<compile.module name="misc" />
+	</target>
+
+	<target name="single.regex">
+		<compile.module name="regex" />
+	</target>
+
+	<target name="single.vmmagic">
+		<compile.module name="vmmagic" />
+	</target>
+
+	<target name="single.vmsupport">
+		<compile.module name="vmsupport" />
+	</target>
+
+	<target name="single.xml">
+		<compile.module name="xml" />
+	</target>
+
+	<target name="single.xml-resolver">
+		<compile.module name="xml-resolver" />
+	</target>
+
+	<target name="single.xerses">
+		<compile.module name="xerses" />
+	</target>
+
+	<target name="single.xalan">
+		<compile.module name="xalan" />
+	</target>
+
+	<target name="single.x-net">
+		<compile.module name="x-net" />
+	</target>
+
+	<target name="single.annotation">
+		<compile.module name="annotation" />
+	</target>
+
+	<target name="single.security">
+		<compile.module name="security" />
+	</target>
+
+	<target name="single.print">
+		<compile.module name="print" />
+	</target>
+
+	<target name="single.luni">
+		<compile.module name="luni" />
+	</target>
+
+	<target name="single.nio">
+		<compile.module name="nio" />
+	</target>
+</project>

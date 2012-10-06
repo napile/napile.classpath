@@ -21,19 +21,18 @@
  */
 package org.apache.harmony.rmi.transport;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
-import java.io.IOException;
 import java.rmi.server.RMIClassLoader;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import org.apache.harmony.kernel.vm.VM;
 import org.apache.harmony.rmi.common.GetBooleanPropAction;
 import org.apache.harmony.rmi.common.RMIProperties;
 import org.apache.harmony.rmi.internal.nls.Messages;
-
-import org.apache.harmony.kernel.vm.VM;
 
 
 /**

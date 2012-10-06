@@ -1,23 +1,29 @@
-/* 
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- * 
+/*
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+/**
+ * @author Evgueni Brevnov, Serguei S. Zapreyev
  */
 
 package java.lang.reflect;
 
 import java.lang.annotation.Annotation;
+
+import org.apache.harmony.lang.reflect.ReflectPermissionCollection;
+import org.apache.harmony.lang.reflect.Reflection;
 
 /**
  * {@code AccessibleObject} is the superclass of all member reflection classes
@@ -36,246 +42,382 @@ import java.lang.annotation.Annotation;
  * @see Method
  * @see ReflectPermission
  */
-public class AccessibleObject implements AnnotatedElement {
+public abstract class AccessibleObject implements AnnotatedElement
+{
+	/**
+	 * Indicates whether or not this element has an annotation with the
+	 * specified annotation type (including inherited annotations).
+	 *
+	 * @param annotationClass the type of the annotation to search for
+	 * @return {@code true} if the annotation exists, {@code false} otherwise
+	 * @throws NullPointerException if {@code annotationType} is {@code null}
+	 */
+	@Override
+	public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
+	{
+		return getAnnotation(annotationClass) != null; // it seems to be correct for Method, Constructor, Field type object
+	}
+
+	/**
+	 * Returns, for this element, the annotation with the specified type, or
+	 * {@code null} if no annotation with the specified type is present
+	 * (including inherited annotations).
+	 *
+	 * @param annotationClass the type of the annotation to search for
+	 * @return the annotation with the specified type or {@code null}
+	 * @throws NullPointerException if {@code annotationType} is {@code null}
+	 */
+	@SuppressWarnings("unchecked")
+	public final <T extends Annotation> T getAnnotation(Class<T> annotationClass)
+	{
+		if(annotationClass == null)
+			throw new NullPointerException();
+		for(Annotation aa : getDeclaredAnnotations())
+			if(aa.annotationType() == annotationClass)
+				return (T) aa;
+
+		return null;
+	}
+
+	/**
+	 * one dimensional array
+	 */
+	private static final String DIMENSION_1 = "[]";
+
+	/**
+	 * two dimensional array
+	 */
+	private static final String DIMENSION_2 = "[][]";
+
+	/**
+	 * three dimensional array
+	 */
+	private static final String DIMENSION_3 = "[][][]";
+
+	/**
+	 * used to exchange information with the java.lang package
+	 */
+	static final ReflectExporter reflectExporter;
+
+	/**
+	 * indicates whether this object is accessible or not
+	 */
+	boolean isAccessible = false;
+
+	static
+	{
+		reflectExporter = new ReflectExporter();
+		Reflection.setReflectAccessor(reflectExporter);
+	}
+
+	protected AccessibleObject()
+	{
+	}
+
+	public static void setAccessible(AccessibleObject[] objs, boolean flag) throws SecurityException
+	{
+		SecurityManager sc = System.getSecurityManager();
+		if(sc != null)
+		{
+			sc.checkPermission(ReflectPermissionCollection.SUPPRESS_ACCESS_CHECKS_PERMISSION);
+		}
+		for(int i = 0; i < objs.length; i++)
+		{
+			objs[i].setAccessible0(flag);
+		}
+	}
+
+	/**
+	 * Indicates whether this object is accessible without security checks being
+	 * performed. Returns the accessible flag.
+	 *
+	 * @return {@code true} if this object is accessible without security
+	 *         checks, {@code false} otherwise
+	 */
+	public boolean isAccessible()
+	{
+		return isAccessible;
+	}
+
+
+
+	/**
+	 * Attempts to set the value of the accessible flag. Setting this flag to
+	 * false will enable access checks, setting to true will disable them. If
+	 * there is a security manager, checkPermission is called with a
+	 * ReflectPermission("suppressAccessChecks").
+	 *
+	 * @param flag the new value for the accessible flag
+	 * @see ReflectPermission
+	 * @throws SecurityException if the request is denied
+	 */
+	public void setAccessible(boolean flag) throws SecurityException
+	{
+		SecurityManager sc = System.getSecurityManager();
+		if(sc != null)
+		{
+			sc.checkPermission(ReflectPermissionCollection.SUPPRESS_ACCESS_CHECKS_PERMISSION);
+		}
+		setAccessible0(flag);
+	}
 
     /*
-     * This class must be implemented by the VM vendor.
+	 * NON API SECTION
      */
 
-    /**
-     * TODO Is this necessary?
-     */
-    static final Object[] emptyArgs = new Object[0];
+	/**
+	 * Checks obj argument for correctness.
+	 *
+	 * @param declaringClass declaring class of the field/method member
+	 * @param memberModifier field/method member modifier
+	 * @param obj            object to check for correctness
+	 * @return null if accessing static member, otherwise obj
+	 * @throws IllegalArgumentException if obj is not valid object
+	 * @throws NullPointerException     if obj or declaringClass argument is null
+	 */
+	Object checkObject(Class declaringClass, int memberModifier, Object obj) throws IllegalArgumentException
+	{
+		if(Modifier.isStatic(memberModifier))
+		{
+			return null;
+		}
+		else if(!declaringClass.isInstance(obj))
+		{
+			if(obj == null)
+			{
+				throw new NullPointerException("The specified object is null but the method is not static");
+			}
+			throw new IllegalArgumentException("The specified object should be an instance of " + declaringClass);
+		}
+		return obj;
+	}
 
-    /**
-     * Attempts to set the value of the accessible flag for all the objects in
-     * the array provided. Only one security check is performed. Setting this
-     * flag to {@code false} will enable access checks, setting to {@code true}
-     * will disable them. If there is a security manager, checkPermission is
-     * called with a {@code ReflectPermission("suppressAccessChecks")}.
-     *
-     * @param objects
-     *            the accessible objects
-     * @param flag
-     *            the new value for the accessible flag
-     * @throws SecurityException
-     *             if the request is denied
-     * @see #setAccessible(boolean)
-     * @see ReflectPermission
-     */
-    public static void setAccessible(AccessibleObject[] objects, boolean flag)
-            throws SecurityException {
-        return;
-    }
+	/**
+	 * Appends the specified class name to the buffer. The class may represent
+	 * a simple type, a reference type or an array type.
+	 *
+	 * @param sb  buffer
+	 * @param obj the class which name should be appended to the buffer
+	 * @throws NullPointerException if any of the arguments is null
+	 */
+	void appendArrayType(StringBuilder sb, Class<?> obj)
+	{
+		if(!obj.isArray())
+		{
+			sb.append(obj.getName());
+			return;
+		}
+		int dimensions = 1;
+		Class simplified = obj.getComponentType();
+		obj = simplified;
+		while(simplified.isArray())
+		{
+			obj = simplified;
+			dimensions++;
+		}
+		sb.append(obj.getName());
+		switch(dimensions)
+		{
+			case 1:
+				sb.append(DIMENSION_1);
+				break;
+			case 2:
+				sb.append(DIMENSION_2);
+				break;
+			case 3:
+				sb.append(DIMENSION_3);
+				break;
+			default:
+				for(; dimensions > 0; dimensions--)
+				{
+					sb.append(DIMENSION_1);
+				}
+		}
+	}
 
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param parameterTypes
-     * @param args
-     * @return
-     * @throws IllegalArgumentException
-     */
-    static Object[] marshallArguments(Class[] parameterTypes, Object[] args)
-            throws IllegalArgumentException {
-        return null;
-    }
+	/**
+	 * Appends names of the specified array classes to the buffer. The array
+	 * elements may represent a simple type, a reference type or an array type.
+	 * Output format: java.lang.Object[], java.io.File, void
+	 *
+	 * @param sb   buffer
+	 * @param objs array of classes to print the names
+	 * @throws NullPointerException if any of the arguments is null
+	 */
+	void appendArrayType(StringBuilder sb, Class[] objs)
+	{
+		if(objs.length > 0)
+		{
+			appendArrayType(sb, objs[0]);
+			for(int i = 1; i < objs.length; i++)
+			{
+				sb.append(',');
+				appendArrayType(sb, objs[i]);
+			}
+		}
+	}
 
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param clazz
-     */
-    static native void initializeClass(Class<?> clazz);
+	/**
+	 * Appends names of the specified array classes to the buffer. The array
+	 * elements may represent a simple type, a reference type or an array type.
+	 * Output format: java.lang.Object[], java.io.File, void
+	 *
+	 * @param sb   buffer
+	 * @param objs array of classes to print the names
+	 * @throws NullPointerException if any of the arguments is null
+	 */
+	void appendArrayGenericType(StringBuilder sb, Type[] objs)
+	{
+		if(objs.length > 0)
+		{
+			appendGenericType(sb, objs[0]);
+			for(int i = 1; i < objs.length; i++)
+			{
+				sb.append(',');
+				appendGenericType(sb, objs[i]);
+			}
+		}
+	}
 
-    /**
-     * Answer the class at depth. Notes: 1) This method operates on the defining
-     * classes of methods on stack. NOT the classes of receivers. 2) The item at
-     * index zero describes the caller of this method.
-     */
-    static final native Class<?> getStackClass(int depth);
+	/**
+	 * Appends the generic type representation to the buffer.
+	 *
+	 * @param sb  buffer
+	 * @param obj the generic type which representation should be appended to the buffer
+	 * @throws NullPointerException if any of the arguments is null
+	 */
+	void appendGenericType(StringBuilder sb, Type obj)
+	{
+		if(obj instanceof TypeVariable)
+		{
+			sb.append(((TypeVariable) obj).getName());
+		}
+		else if(obj instanceof ParameterizedType)
+		{
+			sb.append(obj.toString());
+		}
+		else if(obj instanceof GenericArrayType)
+		{ //XXX: is it a working branch?
+			Type simplified = ((GenericArrayType) obj).getGenericComponentType();
+			appendGenericType(sb, simplified);
+			sb.append("[]");
+		}
+		else if(obj instanceof Class)
+		{
+			Class c = ((Class<?>) obj);
+			if(c.isArray())
+			{
+				String as[] = c.getName().split("\\[");
+				int len = as.length - 1;
+				if(as[len].length() > 1)
+				{
+					sb.append(as[len].substring(1, as[len].length() - 1));
+				}
+				else
+				{
+					char ch = as[len].charAt(0);
+					if(ch == 'I')
+						sb.append("int");
+					else if(ch == 'B')
+						sb.append("byte");
+					else if(ch == 'J')
+						sb.append("long");
+					else if(ch == 'F')
+						sb.append("float");
+					else if(ch == 'D')
+						sb.append("double");
+					else if(ch == 'S')
+						sb.append("short");
+					else if(ch == 'C')
+						sb.append("char");
+					else if(ch == 'Z')
+						sb.append("boolean");
+					else if(ch == 'V') //XXX: is it a working branch?
+						sb.append("void");
+				}
+				for(int i = 0; i < len; i++)
+				{
+					sb.append("[]");
+				}
+			}
+			else
+			{
+				sb.append(c.getName());
+			}
+		}
+	}
 
-    /**
-     * Constructs a new {@code AccessibleObject} instance. {@code
-     * AccessibleObject} instances can only be constructed by the virtual
-     * machine.
-     */
-    protected AccessibleObject() {
-        super();
-    }
+	/**
+	 * Appends names of the specified array classes to the buffer. The array
+	 * elements may represent a simple type, a reference type or an array type.
+	 * In case if the specified array element represents an array type its
+	 * internal will be appended to the buffer.
+	 * Output format: [Ljava.lang.Object;, java.io.File, void
+	 *
+	 * @param sb   buffer
+	 * @param objs array of classes to print the names
+	 * @throws NullPointerException if any of the arguments is null
+	 */
+	void appendSimpleType(StringBuilder sb, Class<?>[] objs)
+	{
+		if(objs.length > 0)
+		{
+			sb.append(objs[0].getName());
+			for(int i = 1; i < objs.length; i++)
+			{
+				sb.append(',');
+				sb.append(objs[i].getName());
+			}
+		}
+	}
 
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @return
-     */
-    native Class[] getParameterTypesImpl();
+	/**
+	 * Changes accessibility to the specified.
+	 *
+	 * @param flag accessible flag
+	 * @throws SecurityException if this object represents a constructor of the
+	 *                           Class
+	 */
+	private void setAccessible0(boolean flag) throws SecurityException
+	{
+		if(flag && this instanceof Constructor && ((Constructor<?>) this).getDeclaringClass() == Class.class)
+		{
+			throw new SecurityException("Can not make the java.lang.Class class constructor accessible");
+		}
+		isAccessible = flag;
+	}
 
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @return
-     */
-    native int getModifiers();
-
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @return
-     */
-    native Class[] getExceptionTypesImpl();
-
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @return
-     */
-    native String getSignature();
-
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param senderClass
-     * @param receiver
-     * @return
-     */
-    native boolean checkAccessibility(Class<?> senderClass, Object receiver);
-
-    /**
-     * Indicates whether this object is accessible without security checks being
-     * performed. Returns the accessible flag.
-     *
-     * @return {@code true} if this object is accessible without security
-     *         checks, {@code false} otherwise
-     */
-    public boolean isAccessible() {
-        return false;
-    }
-
-    /**
-     * Attempts to set the value of the accessible flag. Setting this flag to
-     * false will enable access checks, setting to true will disable them. If
-     * there is a security manager, checkPermission is called with a
-     * ReflectPermission("suppressAccessChecks").
-     * 
-     * @param flag the new value for the accessible flag
-     * @see ReflectPermission
-     * @throws SecurityException if the request is denied
-     */
-    public void setAccessible(boolean flag) throws SecurityException {
-        return;
-    }
-
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-        return false;
-    }
-
-    public Annotation[] getDeclaredAnnotations() {
-        return new Annotation[0];
-    }
-
-    public Annotation[] getAnnotations() {
-        return new Annotation[0];
-    }
-
-    public <T extends Annotation> T getAnnotation(Class<T> annotationType) {
-        return null;
-    }
-
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param receiver
-     * @param args
-     * @throws InvocationTargetException
-     */
-    void invokeV(Object receiver, Object args[]) throws InvocationTargetException {
-        return;
-    }
-
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param receiver
-     * @param args
-     * @return
-     * @throws InvocationTargetException
-     */
-    Object invokeL(Object receiver, Object args[]) throws InvocationTargetException {
-        return null;
-    }
-
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param receiver
-     * @param args
-     * @return
-     * @throws InvocationTargetException
-     */
-    int invokeI(Object receiver, Object args[]) throws InvocationTargetException {
-        return 0;
-    }
-
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param receiver
-     * @param args
-     * @return
-     * @throws InvocationTargetException
-     */
-    long invokeJ(Object receiver, Object args[]) throws InvocationTargetException {
-        return 0L;
-    }
-
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param receiver
-     * @param args
-     * @return
-     * @throws InvocationTargetException
-     */
-    float invokeF(Object receiver, Object args[]) throws InvocationTargetException {
-        return 0.0F;
-    }
-
-    /**
-     * <p>
-     * TODO Document this method.
-     * </p>
-     * 
-     * @param receiver
-     * @param args
-     * @return
-     * @throws InvocationTargetException
-     */
-    double invokeD(Object receiver, Object args[]) throws InvocationTargetException {
-        return 0.0D;
-    }
+	/**
+	 * Ensures that actual parameters are compartible with types of
+	 * formal parameters. For reference types, argument can be either
+	 * null or assignment-compatible with formal type.
+	 * For primitive types, argument must be non-null wrapper instance.
+	 *
+	 * @param types formal parameter' types
+	 * @param args  runtime arguments
+	 * @throws IllegalArgumentException if arguments are incompartible
+	 */
+	static void checkInvokationArguments(Class<?>[] types, Object[] args)
+	{
+		if((args == null) ? types.length != 0 : args.length != types.length)
+		{
+			throw new IllegalArgumentException("Invalid number of actual parameters");
+		}
+		for(int i = types.length - 1; i >= 0; i--)
+		{
+			if(types[i].isPrimitive())
+			{
+				if(args[i] instanceof Number || args[i] instanceof Character || args[i] instanceof Boolean)
+				{
+					// more accurate conversion testing better done on VM side
+					continue;
+				}
+			}
+			else if(args[i] == null || types[i].isInstance(args[i]))
+			{
+				continue;
+			}
+			throw new IllegalArgumentException("Actual parameter: " + (args[i] == null ? "<null>" : args[i].getClass().getName()) + " is incompatible with " + types[i].getName());
+		}
+	}
 }

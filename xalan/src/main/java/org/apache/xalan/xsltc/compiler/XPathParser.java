@@ -6,15 +6,14 @@
 
 package org.apache.xalan.xsltc.compiler;
 
-import java.util.Stack;
 import java.util.Vector;
-import java.io.StringReader;
-import java_cup.runtime.*;
-import org.apache.xml.dtm.DTM;
+
 import org.apache.xalan.xsltc.DOM;
-import org.apache.xml.dtm.Axis;
-import org.apache.xalan.xsltc.runtime.Operators;
 import org.apache.xalan.xsltc.compiler.util.ErrorMsg;
+import org.apache.xalan.xsltc.runtime.Operators;
+import org.apache.xml.dtm.Axis;
+import org.apache.xml.dtm.DTM;
+import java_cup.runtime.Symbol;
 
 /** CUP v0.10k generated parser.
   * @version Thu Nov 22 16:41:50 EST 2007

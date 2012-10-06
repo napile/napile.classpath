@@ -5,8 +5,10 @@
  */
 
 package java.util.concurrent.atomic;
+
+import java.util.Arrays;
+
 import sun.misc.Unsafe;
-import java.util.*;
 
 /**
  * An array of object references in which elements may be updated

@@ -1,297 +1,253 @@
-/* 
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- * 
+/*
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package java.security;
 
+import java.util.ArrayList;
+import java.util.WeakHashMap;
+
+import org.apache.harmony.security.fortress.SecurityUtils;
+
 /**
- * This class must be implemented by the vm vendor, or the reference
- * implementation can be used if the documented native is implemented.
- * 
- * Checks access to system resources. Supports marking of code as priveleged.
- * Makes context snapshots to allow checking from other contexts.
+ * @com.intel.drl.spec_ref
  */
 public final class AccessController {
-    static {
-        // Initialize vm-internal caches
-        initializeInternal();
-    }
 
-    private static native void initializeInternal();
+	private AccessController() {
+		throw new Error("statics only.");
+	};
 
-    /**
-     * Prevents this class from being instantiated.
-     */
-    private AccessController() {
-    }
+	/**
+	 * A map used to store a mapping between a given Thread and
+	 * AccessControllerContext-s used in successive calls of doPrivileged(). A
+	 * WeakHashMap is used to allow automagical wiping of the dead threads from
+	 * the map. The thread (normally Thread.currentThread()) is used as a key
+	 * for the map, and a value is ArrayList where all AccessControlContext-s are
+	 * stored. ((ArrayList)contexts.get(Thread.currentThread())).lastElement() -
+	 * is reference to the latest context passed to the doPrivileged() call.
+	 */
+	private static final WeakHashMap<Thread, ArrayList<AccessControlContext>>
+			contexts = new WeakHashMap<Thread, ArrayList<AccessControlContext>>();
 
-    /**
-     * This native must be implemented to use the reference implementation of
-     * this class. It is used by checkPermission() and getContext(), which call
-     * this native with depth = 1.
-     * 
-     * Returns an array of ProtectionDomain from the classes on the stack, from
-     * the specified depth up to the first privileged frame, or the end of the
-     * stack if there is not a privileged frame. The array may be larger than
-     * required, but must be null terminated. As bootstrap classes have all
-     * permissions, bootstrap class frames SHOULD be skipped. Bootstrap class
-     * frames MUST be skipped if the ProtectionDomain of bootstrap classes is
-     * null. Duplicate ProtectionDomains SHOULD be removed.
-     * 
-     * The first element of the result is the AccessControlContext, which may be
-     * null, either from the privileged frame, or from the current Thread if
-     * there is not a privileged frame.
-     * 
-     * A privileged frame is any frame running one of the following methods:
-     * 
-     * <code><ul>
-     * <li>java/security/AccessController.doPrivileged(Ljava/security/PrivilegedAction;)Ljava/lang/Object;</li>
-     * <li>java/security/AccessController.doPrivileged(Ljava/security/PrivilegedExceptionAction;)Ljava/lang/Object;</li>
-     * <li>java/security/AccessController.doPrivileged(Ljava/security/PrivilegedAction;Ljava/security/AccessControlContext;)Ljava/lang/Object;</li>
-     * <li>java/security/AccessController.doPrivileged(Ljava/security/PrivilegedExceptionAction;Ljava/security/AccessControlContext;)Ljava/lang/Object;</li>
-     * </ul></code>
-     * 
-     * @param depth
-     *            The stack depth at which to start. Depth 0 is the current
-     *            frame (the caller of this native).
-     * 
-     * @return an Object[] where the first element is AccessControlContext, and
-     *         the other elements are ProtectionsDomain.
-     */
+	/**
+	 * @com.intel.drl.spec_ref
+	 */
+	public static <T> T doPrivileged(PrivilegedAction<T> action) {
+		if (action == null) {
+			throw new NullPointerException("action can not be null");
+		}
+		return doPrivilegedImpl(action, null);
+	}
 
-    private static native Object[] getProtectionDomains(int depth);
+	/**
+	 * @com.intel.drl.spec_ref
+	 */
+	public static <T> T doPrivileged(PrivilegedAction<T> action,
+			AccessControlContext context) {
+		if (action == null) {
+			throw new NullPointerException("action can not be null");
+		}
+		return doPrivilegedImpl(action, context);
+	}
 
-    /**
-     * Checks whether the running program is allowed to access the resource
-     * being guarded by the given Permission argument.
-     * 
-     * 
-     * @param perm
-     *            the permission to check
-     * @exception AccessControlException
-     *                if access is not allowed.
-     */
-    public static void checkPermission(Permission perm)
-            throws AccessControlException {
-        if (perm == null)
-            throw new NullPointerException();
-        Object[] domains = getProtectionDomains(1);
-        AccessControlContext acc = (AccessControlContext) domains[0];
-        ProtectionDomain[] pDomains = null;
-        if (acc != null && acc.domainCombiner != null) {
-            pDomains = acc.domainCombiner.combine(toArrayOfProtectionDomains(
-                    domains, null), acc.domainsArray);
-        } else {
-            pDomains = toArrayOfProtectionDomains(domains, acc);
-        }
-        for (int i = 0, length = pDomains.length; i < length; i++) {
-            if (!pDomains[i].implies(perm)) {
-                throw new AccessControlException("Access Denied " + perm, perm); //$NON-NLS-1$
-            }
-        }
-    }
+	/**
+	 * @com.intel.drl.spec_ref
+	 */
+	public static <T> T doPrivileged(PrivilegedExceptionAction<T> action)
+			throws PrivilegedActionException {
+		if (action == null) {
+			throw new NullPointerException("action can not be null");
+		}
+		return doPrivilegedImpl(action, null);
+	}
 
-    /**
-     * Used to keep the context live during doPrivileged().
-     * 
-     * @see #doPrivileged(PrivilegedAction, AccessControlContext)
-     */
-    private static void keepalive(AccessControlContext context) {
-    }
+	/**
+	 * @com.intel.drl.spec_ref
+	 */
+	public static <T> T doPrivileged(PrivilegedExceptionAction<T> action,
+			AccessControlContext context) throws PrivilegedActionException {
+		if (action == null) {
+			throw new NullPointerException("action can not be null");
+		}
+		return doPrivilegedImpl(action, context);
+	}
 
-    /**
-     * Answers the access controller context of the current thread, including
-     * the inherited ones. It basically retrieves all the protection domains
-     * from the calling stack and creates an <code>AccessControlContext</code>
-     * with them.
-     * 
-     * @return the access control context of the current thread
-     * @see AccessControlContext
-     */
-    public static AccessControlContext getContext() {
-        Object[] domains = getProtectionDomains(1);
-        AccessControlContext acc = (AccessControlContext) domains[0];
-        ProtectionDomain[] pDomains = null;
-        if (acc != null && acc.domainCombiner != null) {
-            pDomains = acc.domainCombiner.combine(toArrayOfProtectionDomains(
-                    domains, null), acc.domainsArray);
-            AccessControlContext result = new AccessControlContext(pDomains,
-                    false);
-            result.domainCombiner = acc.domainCombiner;
-            return result;
-        }
-        return new AccessControlContext(
-                toArrayOfProtectionDomains(domains, acc), false);
-    }
+	/**
+	 * The real implementation of doPrivileged() method.<br>
+	 * It pushes the passed context into this thread's contexts stack,
+	 * and then invokes <code>action.run()</code>.<br>
+	 * The pushed context is then investigated in the {@link getContext()}
+	 * which is called in the {@link checkPermission}.
+	 */
+	private static <T> T doPrivilegedImpl(PrivilegedExceptionAction<T> action,
+			AccessControlContext context) throws PrivilegedActionException {
 
-    private static ProtectionDomain[] toArrayOfProtectionDomains(
-            Object[] domains, AccessControlContext acc) {
-        int len = 0, size = domains.length - 1;
-        int extra = acc == null ? 0 : acc.domainsArray.length;
-        ProtectionDomain[] answer = new ProtectionDomain[size + extra];
-        for (int i = 1; i <= size; i++) {
-            boolean found = false;
-            if ((answer[len] = (ProtectionDomain) domains[i]) == null)
-                break;
-            if (acc != null) {
-                for (int j = 0; j < acc.domainsArray.length; j++) {
-                    if (answer[len] == acc.domainsArray[j]) {
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            if (!found)
-                len++;
-        }
-        if (len == 0 && acc != null)
-            return acc.domainsArray;
-        else if (len < size) {
-            ProtectionDomain[] copy = new ProtectionDomain[len + extra];
-            System.arraycopy(answer, 0, copy, 0, len);
-            answer = copy;
-        }
-        if (acc != null)
-            System.arraycopy(acc.domainsArray, 0, answer, len,
-                    acc.domainsArray.length);
-        return answer;
-    }
+		Thread currThread = Thread.currentThread();
 
-    /**
-     * Performs the privileged action specified by <code>action</code>.
-     * 
-     * When permission checks are made, if the permission has been granted by
-     * all frames below and including the one representing the call to this
-     * method, then the permission is granted. In otherwords, the check stops
-     * here.
-     * 
-     * Any unchecked exception generated by this method will propagate up the
-     * chain.
-     * 
-     * @param action
-     *            the action being performed
-     * @param <T>
-     *            the return type for the privileged action
-     * @return the result of evaluating the action
-     * 
-     * @see #doPrivileged(PrivilegedAction)
-     */
-    public static <T> T doPrivileged(PrivilegedAction<T> action) {
-        return action.run();
-    }
+		ArrayList<AccessControlContext> a = null;
+		try {
+			// currThread==null means that VM warm up is in progress
+			if (currThread != null && contexts != null) {
+				synchronized (contexts) {
+					a = contexts.get(currThread);
+					if (a == null) {
+						a = new ArrayList<AccessControlContext>();
+						contexts.put(currThread, a);
+					}
+				}
+				a.add(context);
+			}
+			return action.run();
 
-    /**
-     * Performs the privileged action specified by <code>action</code>.
-     * 
-     * When permission checks are made, if the permission has been granted by
-     * all frames below and including the one representing the call to this
-     * method, then the permission is granted iff it is granted by the
-     * AccessControlContext <code>context</code>. In otherwords, no more
-     * checking of the current stack is performed. Instead, the passed in
-     * context is checked.
-     * 
-     * Any unchecked exception generated by this method will propagate up the
-     * chain.
-     * 
-     * @param action
-     *            the action being performed
-     * @param <T>
-     *            the return type for the privileged action
-     * @param context
-     *            the context being checked for the privileged action
-     * @return the result of evaluating the action
-     * 
-     * @see #doPrivileged(PrivilegedAction)
-     */
-    public static <T> T doPrivileged(PrivilegedAction<T> action,
-            AccessControlContext context) {
-        T result = action.run();
-        keepalive(context);
-        return result;
-    }
+		} catch (Exception ex) {
+			// Errors automagically go throught - they are not catched by this
+			// block
 
-    /**
-     * Performs the privileged action specified by <code>action</code>.
-     * 
-     * When permission checks are made, if the permission has been granted by
-     * all frames below and including the one representing the call to this
-     * method, then the permission is granted. In otherwords, the check stops
-     * here.
-     * 
-     * Any unchecked exception generated by this method will propagate up the
-     * chain. However, checked exceptions will be caught an re-thrown as
-     * PrivilegedActionExceptions.
-     * 
-     * @param action
-     *            the action being performed
-     * @param <T>
-     *            the return type for the privileged action
-     * @return the result of evaluating the action
-     * @throws PrivilegedActionException
-     *             if a checked exception was thrown
-     * @see #doPrivileged(PrivilegedAction)
-     */
-    public static <T> T doPrivileged(PrivilegedExceptionAction<T> action)
-            throws PrivilegedActionException {
-        try {
-            return action.run();
-        } catch (RuntimeException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            throw new PrivilegedActionException(ex);
-        }
-    }
+			// Unchecked exceptions must pass through without modification
+			if (ex instanceof RuntimeException) {
+				throw (RuntimeException) ex;
+			}
 
-    /**
-     * Performs the privileged action specified by <code>action</code>.
-     * 
-     * When permission checks are made, if the permission has been granted by
-     * all frames below and including the one representing the call to this
-     * method, then the permission is granted iff it is granted by the
-     * AccessControlContext <code>context</code>. In otherwords, no more
-     * checking of the current stack is performed. Instead, the passed in
-     * context is checked.
-     * 
-     * Any unchecked exception generated by this method will propagate up the
-     * chain. However, checked exceptions will be caught an re-thrown as
-     * PrivilegedActionExceptions
-     * 
-     * @param action
-     *            the action being performed
-     * @param <T>
-     *            the return type for the privileged action
-     * @param context
-     *            the context being checked for the privileged action
-     * @return the result of evaluating the action
-     * @throws PrivilegedActionException
-     *             if a checked exception was thrown
-     * 
-     * @see #doPrivileged(PrivilegedAction)
-     */
-    public static <T> T doPrivileged(PrivilegedExceptionAction<T> action,
-            AccessControlContext context) throws PrivilegedActionException {
-        try {
-            T result = action.run();
-            keepalive(context);
-            return result;
-        } catch (RuntimeException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            throw new PrivilegedActionException(ex);
-        }
-    }
+			// All other (==checked) exceptions get wrapped
+			throw new PrivilegedActionException(ex);
+		} finally {
+			if (currThread != null) {
+				// No need to sync() here, as each given 'a' will be accessed
+				// only from one Thread. 'contexts' still need sync() however,
+				// as it's accessed from different threads simultaneously
+				if (a != null) {
+					// it seems I will never have here [v.size() == 0]
+					a.remove(a.size() - 1);
+				}
+			}
+		}
+	}
 
+	/**
+	 * The real implementation of appropriate doPrivileged() method.<br>
+	 * It pushes the passed context into this thread's stack of contexts and
+	 * then invokes <code>action.run()</code>.<br>
+	 * The pushed context is then investigated in the {@link getContext()}
+	 * which is called in the {@link checkPermission}.
+	 */
+	private static <T> T doPrivilegedImpl(PrivilegedAction<T> action,
+			AccessControlContext context) {
+
+		Thread currThread = Thread.currentThread();
+
+		if (currThread == null || contexts == null) {
+			// Big boom time - VM is starting... No need to check permissions:
+			// 1st, I do believe there is no malicious code available here for
+			// this moment
+			// 2d, I cant use currentThread() as a key anyway - when it will
+			// turn into the real Thread, I'll be unable to retrieve the value
+			// stored with 'currThread==null' as a key.
+			return action.run();
+		}
+
+		ArrayList<AccessControlContext> a = null;
+		try {
+			synchronized (contexts) {
+				a = contexts.get(currThread);
+				if (a == null) {
+					a = new ArrayList<AccessControlContext>();
+					contexts.put(currThread, a);
+				}
+			}
+			a.add(context);
+
+			return action.run();
+
+		} finally {
+			// No need to sync() here, as each given 'a' will be accessed
+			// only from one Thread. 'contexts' still need sync() however,
+			// as it's accessed from different threads simultaneously
+			if (a != null) {
+				a.remove(a.size() - 1);
+			}
+		}
+	}
+
+	/**
+	 * @com.intel.drl.spec_ref
+	 */
+	public static void checkPermission(Permission perm)
+			throws AccessControlException {
+		if (perm == null) {
+			throw new NullPointerException("permission can not be null");
+		}
+
+		getContext().checkPermission(perm);
+	}
+
+	/**
+	 * Returns array of ProtectionDomains of classes residing
+	 * on the stack of the current thread, up to the caller of nearest
+	 * privileged frame; reflection frames are skipped.
+	 * The returned array is never null and never contains null elements,
+	 * meaning that bootstrap classes are effectively ignored.
+	 * @see org.apache.harmony.vm.VMStack.getClasses()
+	 */
+	private static native ProtectionDomain[] getStackDomains();
+
+	/**
+	 * @com.intel.drl.spec_ref
+	 */
+	public static AccessControlContext getContext() {
+
+		// duplicates (if any) will be removed in ACC constructor
+		ProtectionDomain[] stack = getStackDomains();
+
+		Thread currThread = Thread.currentThread();
+		if (currThread == null || contexts == null) {
+			// Big boo time. No need to check anything ?
+			return new AccessControlContext(stack);
+		}
+
+		ArrayList<AccessControlContext> threadContexts;
+		synchronized (contexts) {
+			threadContexts = contexts.get(currThread);
+		}
+
+		AccessControlContext that;
+		if ((threadContexts == null) || (threadContexts.size() == 0)) {
+			// We were not in doPrivileged method, so
+			// have inherited context here
+			that = SecurityUtils.getContext(currThread);
+		} else {
+			// We were in doPrivileged method, so
+			// Use context passed to the doPrivileged()
+			that = threadContexts.get(threadContexts.size() - 1);
+		}
+
+		if (that != null && that.combiner != null) {
+			ProtectionDomain[] assigned = null;
+			if (that.context != null && that.context.length != 0) {
+				assigned = new ProtectionDomain[that.context.length];
+				System.arraycopy(that.context, 0, assigned, 0,
+						assigned.length);
+			}
+			ProtectionDomain[] allpds = that.combiner.combine(stack, assigned);
+			if (allpds == null) {
+				allpds = new ProtectionDomain[0];
+			}
+			return new AccessControlContext(allpds, that.combiner);
+		}
+
+		return new AccessControlContext(stack, that);
+	}
 }

@@ -28,6 +28,7 @@ package java.util;
  * @see Vector
  * @version 1.0
  */
+@Deprecated
 public interface Enumeration<E> {
 
     /**
